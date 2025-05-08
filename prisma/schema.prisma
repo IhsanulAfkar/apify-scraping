@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Comment {
+  id           Int      @id @default(autoincrement())
+  commentId    String   @unique
+  tiktokPostId String
+  text         String
+  likeCount    Int
+  userId       String
+  username     String
+  userAvatar   String?
+  createdTime  DateTime
+
+  TiktokPost TiktokPost @relation(fields: [tiktokPostId], references: [id])
+}
+
+model AuthorMeta {
+  id                String  @id
+  name              String
+  profileUrl        String
+  nickName          String
+  verified          Boolean
+  signature         String
+  bioLink           String? // optional
+  originalAvatarUrl String
+  avatar            String
+  privateAccount    Boolean
+  ttSeller          Boolean
+  following         Int
+  friends           Int
+  fans              Int
+  heart             Int
+  video             Int
+  digg              Int
+
+  posts TiktokPost[]
+}
+
+model TiktokPost {
+  id            String @id
+  text          String
+  createTime    BigInt
+  createTimeISO String
+  webVideoUrl   String @unique
+  diggCount     Int
+  shareCount    Int
+  playCount     Int
+  collectCount  Int
+  commentCount  Int
+
+  authorId String
+  author   AuthorMeta @relation(fields: [authorId], references: [id])
+
+  postHashtags PostHashtag[]
+
+  createdAt DateTime  @default(now())
+  Comment   Comment[]
+}
+
+model TiktokPostHashtag {
+  id    String @id
+  name  String
+  title String
+  cover String
+
+  postHashtags PostHashtag[] // explicit relation
+}
+
+model PostHashtag {
+  postId    String
+  hashtagId String
+
+  post    TiktokPost        @relation(fields: [postId], references: [id])
+  hashtag TiktokPostHashtag @relation(fields: [hashtagId], references: [id])
+
+  @@id([postId, hashtagId])
+}
